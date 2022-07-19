@@ -24,7 +24,7 @@ class SendPosterTimer(val singleMessage: SingleMessage, var delay: Long, val tot
             if (running){
                 val chain = buildMessageChain {
                     +singleMessage
-                    +"\n 总次数${total} 已发送${count} 间隔${delayTime}ms"
+                    //+"\n 总次数${total} 已发送${count} 间隔${delayTime}ms"
                 }
                 if (contact != null) {
                     contact!!.sendMessage(chain)
