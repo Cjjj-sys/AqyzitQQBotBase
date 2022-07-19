@@ -14,7 +14,6 @@ class Menu constructor(vararg menuItems: MenuItem) {
         for (i in 0 until menuItems.count()) {
             chain += PlainText("${i+1}: ${menuItems[i].name} ${menuItems[i].command.usage}\n")
         }
-        chain += PlainText("===== 菜单 =====")
         return chain
     }
 

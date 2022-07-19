@@ -10,6 +10,7 @@ import net.mamoe.mirai.console.plugin.PluginManager.INSTANCE.disable
 import net.mamoe.mirai.console.plugin.jvm.JvmPlugin.Companion.onLoad
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
+import net.mamoe.mirai.console.plugin.version
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.message.data.MessageChain
 import net.mamoe.mirai.message.data.PlainText
@@ -45,7 +46,7 @@ object AqyzitQQBotBase : KotlinPlugin(
         prefixOptional = true, // 设置指令前缀是可选的，即使用 `test` 也能执行指令而不需要 `/test`
     ) {
         override suspend fun CommandSender.onCommand(args: MessageChain) {
-            sendMessage("本插件版本0.1.4\nBy:KangKang")
+            sendMessage("!!测试中!!\n本插件版本${version}\nBy:KangKang\n欢迎加入信息社!")
         }
     }
 
@@ -69,7 +70,7 @@ object AqyzitQQBotBase : KotlinPlugin(
 
     object SendPosterCommand : RawCommand(
         AqyzitQQBotBase, "sendposter",
-        usage = "！需要权限！/sendposter [图片] [间隔(ms, 最小值60000)] [总次数] [群号] [名称]\n" +
+        usage = "!!需要权限!!/sendposter [图片] [间隔(ms, 最小值60000)] [总次数] [群号] [名称]\n" +
                 "示例: /sendposter [图片] 60000 10 1234567890 信息社海报1", // 设置用法，将会在 /help 展示
         description = "设置定时发送海报", // 设置描述，将会在 /help 展示
         prefixOptional = true, // 设置指令前缀是可选的，即使用 `test` 也能执行指令而不需要 `/test`
@@ -105,7 +106,7 @@ object AqyzitQQBotBase : KotlinPlugin(
 
     object ListSendPosterCommand : RawCommand(
         AqyzitQQBotBase, "listsendposter",
-        usage = "/listsendposter", // 设置用法，将会在 /help 展示
+        usage = "!!需要权限!!/listsendposter", // 设置用法，将会在 /help 展示
         description = "列出所有定时发送海报的任务", // 设置描述，将会在 /help 展示
         prefixOptional = true, // 设置指令前缀是可选的，即使用 `test` 也能执行指令而不需要 `/test`
     ) {
@@ -132,7 +133,7 @@ object AqyzitQQBotBase : KotlinPlugin(
 
     object StopSendPosterCommand : RawCommand(
         AqyzitQQBotBase, "stopsendposter",
-        usage = "/stopsendposter [名称]", // 设置用法，将会在 /help 展示
+        usage = "!!需要权限!!/stopsendposter [名称]", // 设置用法，将会在 /help 展示
         description = "停止定时发送海报", // 设置描述，将会在 /help 展示
         prefixOptional = true, // 设置指令前缀是可选的，即使用 `test` 也能执行指令而不需要 `/test`
     ) {
