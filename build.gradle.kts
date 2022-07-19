@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "aqyzit.qqbot.base"
-version = "0.1.5"
+version = "0.1.6"
 
 repositories {
     maven("https://maven.aliyun.com/repository/public")

@@ -2,15 +2,20 @@ package aqyzit.qqbot.base
 
 import kotlinx.coroutines.delay
 import net.mamoe.mirai.Bot
+import net.mamoe.mirai.message.code.MiraiCode
 import net.mamoe.mirai.message.data.SingleMessage
 import net.mamoe.mirai.message.data.buildMessageChain
 
-class SendPosterTimer(val singleMessage: SingleMessage, var delay: Long, val total: Int, val groupId: Long, id: String) {
+// val singleMessage: SingleMessage, var delay: Long, val total: Int, val groupId: Long, id: String
+class SendPosterTimer constructor(val sendPosterInfo: SendPosterInfo) {
     private var running = false
-    public var isAlive: Boolean = true
+    var isAlive: Boolean = true
     var count: Int = 1
-
-    var id: String = id
+    val messageMiraiCode = sendPosterInfo.messageMiraiCode
+    var delay = sendPosterInfo.delay
+    val total = sendPosterInfo.total
+    val groupId = sendPosterInfo.groupId
+    var id: String = sendPosterInfo.id
 
     suspend fun run() {
         var delayTime: Long = 60000
@@ -22,10 +27,8 @@ class SendPosterTimer(val singleMessage: SingleMessage, var delay: Long, val tot
         running = true
         repeat(total) {
             if (running){
-                val chain = buildMessageChain {
-                    +singleMessage
-                    //+"\n 总次数${total} 已发送${count} 间隔${delayTime}ms"
-                }
+                val chain = MiraiCode.deserializeMiraiCode(messageMiraiCode)
+
                 if (contact != null) {
                     contact!!.sendMessage(chain)
                 } else {
