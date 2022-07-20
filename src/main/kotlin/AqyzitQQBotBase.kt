@@ -57,11 +57,12 @@ object AqyzitQQBotBase : KotlinPlugin(
                     val jsonText = File("save.json").readText()
                     val sendPosterInfoList = SendPosterUtil().getSendPosterInfoFromJson(jsonText)
                     for (sendPosterInfo in sendPosterInfoList) {
+                        delay(60000)
+                        logger.info { "[INFO] 载入任务 ${sendPosterInfo.id}" }
                         launch {
                             val sendPosterTimer = SendPosterTimer(sendPosterInfo)
                             sendPosterTimers += sendPosterTimer
                             sendPosterTimer.run()
-                            delay(1000)
                         }
                     }
                 }
@@ -178,6 +179,7 @@ object AqyzitQQBotBase : KotlinPlugin(
                 val sendPosterTimer = sendPosterTimers[i]
                 val sendPosterInfo = sendPosterTimer.sendPosterInfo
                 sendPosterInfoList += sendPosterInfo
+                sendMessage("已保存 ${sendPosterInfo.id}")
             }
             val sendPosterInfoListJson = Json.encodeToString(sendPosterInfoList)
             File("save.json").writeText(sendPosterInfoListJson)
