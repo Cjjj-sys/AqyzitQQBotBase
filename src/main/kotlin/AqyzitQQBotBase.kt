@@ -102,14 +102,14 @@ object AqyzitQQBotBase : KotlinPlugin(
 
     object SendPosterCommand : RawCommand(
         AqyzitQQBotBase, "sendposter","sp",
-        usage = "!!需要权限!!/sendposter [图片] [间隔(ms, 最小值60000)] [总次数] [群号] [名称]\n" +
-                "示例: /sendposter [图片] 60000 10 1234567890 信息社海报1", // 设置用法，将会在 /help 展示
+        usage = "!!需要权限!!/sendposter [图片] [间隔(分钟, 最小值1)] [总次数] [群号] [名称]\n" +
+                "示例: /sendposter [图片] 1 10 1234567890 信息社海报1", // 设置用法，将会在 /help 展示
         description = "设置定时发送海报", // 设置描述，将会在 /help 展示
         prefixOptional = true, // 设置指令前缀是可选的，即使用 `test` 也能执行指令而不需要 `/test`
     ) {
         override suspend fun CommandSender.onCommand(args: MessageChain) {
             val sendPosterInfo = SendPosterInfo(args[0].toMessageChain().serializeToMiraiCode(),
-                args[1].toString().toLong(),
+                args[1].toString().toLong()*60000,
                 args[2].toString().toInt(),
                 args[3].toString().toLong(),
                 args[4].toString())
@@ -134,7 +134,7 @@ object AqyzitQQBotBase : KotlinPlugin(
             for (i in 0 until sendPosterTimers.count()) {
                 if (sendPosterTimers[i].isAlive){
                     chain += PlainText("${i + 1}: ${sendPosterTimers[i].id} " +
-                            "间隔${sendPosterTimers[i].delay}ms " +
+                            "间隔${sendPosterTimers[i].delay/60000}分钟 " +
                             "已发送${sendPosterTimers[i].count} " +
                             "总次数${sendPosterTimers[i].total} " +
                             "群号${sendPosterTimers[i].groupId}\n")
