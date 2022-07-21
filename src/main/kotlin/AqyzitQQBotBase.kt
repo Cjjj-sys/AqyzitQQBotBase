@@ -10,24 +10,21 @@ import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.console.plugin.version
 import net.mamoe.mirai.event.GlobalEventChannel
-import net.mamoe.mirai.event.events.BotInvitedJoinGroupRequestEvent
-import net.mamoe.mirai.event.events.BotOnlineEvent
-import net.mamoe.mirai.event.events.GroupMessageEvent
-import net.mamoe.mirai.event.events.NewFriendRequestEvent
+import net.mamoe.mirai.event.events.*
 import net.mamoe.mirai.message.data.MessageChain
 import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.message.data.toMessageChain
 import net.mamoe.mirai.utils.info
 import java.io.File
-import java.util.*
+import kotlin.collections.HashMap
 import kotlin.coroutines.suspendCoroutine
 
 object AqyzitQQBotBase : KotlinPlugin(
     JvmPluginDescription(
         id = "aqyzit.qqbot.base",
         name = "AqyzitQQBotBase",
-        version = "0.1.6",
+        version = "0.1.7",
     ) {
         author("KangKang")
     }
@@ -40,6 +37,10 @@ object AqyzitQQBotBase : KotlinPlugin(
         CommandManager.registerCommand(ListSendPosterCommand)
         CommandManager.registerCommand(StopSendPosterCommand)
         CommandManager.registerCommand(SaveSendPosterCommand)
+        CommandManager.registerCommand(SendPosterRequestCommand)
+        CommandManager.registerCommand(ListSendPosterRequestCommand)
+        CommandManager.registerCommand(AcceptSendPosterRequestCommand)
+        CommandManager.registerCommand(RefuseSendPosterRequestCommand)
 
         val botInvitedJoinGroupRequestEventListener: CompletableJob =
             GlobalEventChannel.subscribeAlways<BotInvitedJoinGroupRequestEvent> { event ->
@@ -94,7 +95,11 @@ object AqyzitQQBotBase : KotlinPlugin(
                 MenuItem("定时发送海报", SendPosterCommand),
                 MenuItem("列出所有定时发送海报的任务", ListSendPosterCommand),
                 MenuItem("停止定时发送海报的任务", StopSendPosterCommand),
-                MenuItem("将当前海报任务保存到本地", SaveSendPosterCommand)
+                MenuItem("将当前海报任务保存到本地", SaveSendPosterCommand),
+                MenuItem("发送定时发送海报请求", SendPosterRequestCommand),
+                MenuItem("列出所有定时发送海报的请求", ListSendPosterRequestCommand),
+                MenuItem("接受定时发送海报请求", AcceptSendPosterRequestCommand),
+                MenuItem("拒绝定时发送海报请求", RefuseSendPosterRequestCommand)
             )
             sendMessage(menu.toMessageChain())
         }
@@ -119,6 +124,51 @@ object AqyzitQQBotBase : KotlinPlugin(
             }
         }
 
+    var preSendPosterRequestHashMap: HashMap<String, SendPosterRequest> = HashMap()
+    var sendPosterRequestList: MutableList<SendPosterRequest> = mutableListOf()
+    object SendPosterRequestCommand : RawCommand(
+        AqyzitQQBotBase, "sendposterrequest","spr",
+        usage = "/spr start [名称]\n[多行内容]\n/spr end [名称]\n" +
+                "示例: /spr start 信息社海报\n[图片]\n在2022同学群发10次,每次间隔半小时\n/spr end 信息社海报", // 设置用法，将会在 /help 展示
+        description = "发送定时发送海报请求", // 设置描述，将会在 /help 展示
+        prefixOptional = true, // 设置指令前缀是可选的，即使用 `test` 也能执行指令而不需要 `/test`
+    ) {
+        override suspend fun CommandSender.onCommand(args: MessageChain) {
+            if (args[0].toString() == "start") {
+                val sendPosterRequest = SendPosterRequest(this.subject!!, args[1].toString())
+                preSendPosterRequestHashMap[args[1].toString()] = sendPosterRequest
+            }
+            else if (args[0].toString() == "end") {
+                if (preSendPosterRequestHashMap[args[1].toString()] != null) {
+                    val sendPosterRequest = preSendPosterRequestHashMap[args[1].toString()]
+                    sendPosterRequest!!.end()
+                    preSendPosterRequestHashMap.remove(args[1].toString())
+                    sendPosterRequestList += sendPosterRequest
+                }
+            }
+        }
+    }
+
+    object ListSendPosterRequestCommand : RawCommand(
+        AqyzitQQBotBase, "listsendposterrequest","lspr",
+        usage = "/lspr", // 设置用法，将会在 /help 展示
+        description = "列出所有定时发送海报的请求", // 设置描述，将会在 /help 展示
+        prefixOptional = true, // 设置指令前缀是可选的，即使用 `test` 也能执行指令而不需要 `/test`
+    ) {
+        override suspend fun CommandSender.onCommand(args: MessageChain) {
+            var chain = buildMessageChain {
+                +PlainText("当前定时发送海报的请求:")
+                +PlainText(sendPosterRequestList.count().toString() + "\n")
+            }
+            for (i in 0 until sendPosterRequestList.count()) {
+                chain += "${sendPosterRequestList[i].id}(发送者: ${sendPosterRequestList[i].sender}): "
+                chain += sendPosterRequestList[i].chain
+                chain += "\n"
+            }
+            sendMessage(chain)
+        }
+    }
+
     object ListSendPosterCommand : RawCommand(
         AqyzitQQBotBase, "listsendposter","lsp",
         usage = "!!需要权限!!/listsendposter", // 设置用法，将会在 /help 展示
@@ -127,7 +177,7 @@ object AqyzitQQBotBase : KotlinPlugin(
     ) {
         override suspend fun CommandSender.onCommand(args: MessageChain) {
             var chain = buildMessageChain {
-                +PlainText("当前定时发送海报的任务:")
+                +PlainText("当前定时发送海报的请求:")
                 +PlainText(sendPosterTimers.count().toString() + "\n")
             }
             val removeList = mutableListOf<SendPosterTimer>()
@@ -162,6 +212,40 @@ object AqyzitQQBotBase : KotlinPlugin(
                     sendPosterTimers[i].stopRun()
                     sendMessage("已停止 ${sendPosterTimers[i].id}")
                     sendPosterTimers.remove(sendPosterTimers[i])
+                }
+            }
+        }
+    }
+
+    object RefuseSendPosterRequestCommand : RawCommand(
+        AqyzitQQBotBase, "refusesendposterrequest","rspr",
+        usage = "!!需要权限!!/rspr [名称] [原因]", // 设置用法，将会在 /help 展示
+        description = "拒绝定时发送海报请求,并给出原因", // 设置描述，将会在 /help 展示
+        prefixOptional = true, // 设置指令前缀是可选的，即使用 `test` 也能执行指令而不需要 `/test`
+    ) {
+        override suspend fun CommandSender.onCommand(args: MessageChain) {
+            for (i in 0 until sendPosterRequestList.count()) {
+                if (sendPosterRequestList[i].id == args[0].toString()) {
+                    sendMessage("已拒绝 ${sendPosterRequestList[i].id}, 原因是 ${args[1]}")
+                    sendPosterRequestList[i].sender.sendMessage("已拒绝 ${sendPosterRequestList[i].id}, 原因是 ${args[1]}")
+                    sendPosterRequestList.remove(sendPosterRequestList[i])
+                }
+            }
+        }
+    }
+
+    object AcceptSendPosterRequestCommand : RawCommand(
+        AqyzitQQBotBase, "acceptsendposterrequest","aspr",
+        usage = "!!需要权限!!/aspr ", // 设置用法，将会在 /help 展示
+        description = "接受定时发送海报请求", // 设置描述，将会在 /help 展示
+        prefixOptional = true, // 设置指令前缀是可选的，即使用 `test` 也能执行指令而不需要 `/test`
+    ) {
+        override suspend fun CommandSender.onCommand(args: MessageChain) {
+            for (i in 0 until sendPosterRequestList.count()) {
+                if (sendPosterRequestList[i].id == args[0].toString()) {
+                    sendMessage("已接受 ${sendPosterRequestList[i].id}")
+                    sendPosterRequestList[i].sender.sendMessage("已接受 ${sendPosterRequestList[i].id}")
+                    sendPosterRequestList.remove(sendPosterRequestList[i])
                 }
             }
         }
