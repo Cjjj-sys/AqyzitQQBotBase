@@ -18,7 +18,6 @@ import net.mamoe.mirai.message.data.toMessageChain
 import net.mamoe.mirai.utils.info
 import java.io.File
 import kotlin.collections.HashMap
-import kotlin.coroutines.suspendCoroutine
 
 object AqyzitQQBotBase : KotlinPlugin(
     JvmPluginDescription(
@@ -161,7 +160,7 @@ object AqyzitQQBotBase : KotlinPlugin(
                 +PlainText(sendPosterRequestList.count().toString() + "\n")
             }
             for (i in 0 until sendPosterRequestList.count()) {
-                chain += "${sendPosterRequestList[i].id}(发送者: ${sendPosterRequestList[i].sender}): "
+                chain += "${sendPosterRequestList[i].id}(发送者: ${sendPosterRequestList[i].requestSender}): "
                 chain += sendPosterRequestList[i].chain
                 chain += "\n"
             }
@@ -227,7 +226,7 @@ object AqyzitQQBotBase : KotlinPlugin(
             for (i in 0 until sendPosterRequestList.count()) {
                 if (sendPosterRequestList[i].id == args[0].toString()) {
                     sendMessage("已拒绝 ${sendPosterRequestList[i].id}, 原因是 ${args[1]}")
-                    sendPosterRequestList[i].sender.sendMessage("已拒绝 ${sendPosterRequestList[i].id}, 原因是 ${args[1]}")
+                    sendPosterRequestList[i].requestSender.sendMessage("已拒绝 ${sendPosterRequestList[i].id}, 原因是 ${args[1]}")
                     sendPosterRequestList.remove(sendPosterRequestList[i])
                 }
             }
@@ -244,7 +243,7 @@ object AqyzitQQBotBase : KotlinPlugin(
             for (i in 0 until sendPosterRequestList.count()) {
                 if (sendPosterRequestList[i].id == args[0].toString()) {
                     sendMessage("已接受 ${sendPosterRequestList[i].id}")
-                    sendPosterRequestList[i].sender.sendMessage("已接受 ${sendPosterRequestList[i].id}")
+                    sendPosterRequestList[i].requestSender.sendMessage("已接受 ${sendPosterRequestList[i].id}")
                     sendPosterRequestList.remove(sendPosterRequestList[i])
                 }
             }
