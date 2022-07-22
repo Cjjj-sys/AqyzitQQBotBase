@@ -1,8 +1,15 @@
 package aqyzit.qqbot.base
 
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import kotlinx.coroutines.*
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import net.mamoe.mirai.Bot
+import net.mamoe.mirai.Bot.Companion.instances
 import net.mamoe.mirai.console.command.CommandManager
 import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.RawCommand
@@ -11,10 +18,7 @@ import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.console.plugin.version
 import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.events.*
-import net.mamoe.mirai.message.data.MessageChain
-import net.mamoe.mirai.message.data.PlainText
-import net.mamoe.mirai.message.data.buildMessageChain
-import net.mamoe.mirai.message.data.toMessageChain
+import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.info
 import java.io.File
 import kotlin.collections.HashMap
@@ -64,6 +68,22 @@ object AqyzitQQBotBase : KotlinPlugin(
                             sendPosterTimers += sendPosterTimer
                             sendPosterTimer.run()
                         }
+                    }
+                }
+            }
+
+        val groupMessageEventListener: CompletableJob =
+            GlobalEventChannel.subscribeAlways<GroupMessageEvent> { event ->
+                if (event.message[1].toString() == "[mirai:at:2971105266]") {
+                    launch { val msg = event.message[2].toString().trim()
+                        val client = HttpClient.newBuilder().build();
+                        val request = HttpRequest.newBuilder()
+                            .uri(URI.create("http://api.qingyunke.com/api.php?key=free&appid=0&msg=${msg}"))
+                            .build();
+
+                        val response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                        val resultChatData = Json.decodeFromString<ChatData>(response.body())
+                        event.group.sendMessage(At(sender.id) + resultChatData.content.replace("{br}", "\n"))
                     }
                 }
             }
