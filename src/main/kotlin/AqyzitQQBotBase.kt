@@ -83,7 +83,14 @@ object AqyzitQQBotBase : KotlinPlugin(
 
                         val response = client.send(request, HttpResponse.BodyHandlers.ofString());
                         val resultChatData = Json.decodeFromString<ChatData>(response.body())
-                        event.group.sendMessage(At(sender.id) + resultChatData.content.replace("{br}", "\n"))
+                        event.group.sendMessage(At(sender.id) + resultChatData.content
+                            .replace("{br}", "\n")
+                            .replace("小美人菲菲", "小帅哥轩轩")
+                            .replace("菲菲", "轩轩")
+                            .replace("<BR>", " ")
+                            .replace("&nbsp", " ")
+                            .replace("纯情小女生","纯情小男生")
+                        )
                     }
                 }
             }
