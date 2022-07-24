@@ -1,6 +1,5 @@
 package aqyzit.qqbot.base
 
-import aqyzit.qqbot.base.aqyzit.qqbot.base.ChatData
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -79,7 +78,7 @@ object AqyzitQQBotBase : KotlinPlugin(
                     launch { val msg = event.message[2].toString().trim()
                         val client = HttpClient.newBuilder().build();
                         val request = HttpRequest.newBuilder()
-                            .uri(URI.create("https://api.ownthink.com/bot?appid=xiaosi&userid=${event.senderName}&spoken=${msg}"))
+                            .uri(URI.create("https://api.ownthink.com/bot?appid=784a7761d3d9b188a9282e10ff0a41cb&userid=${event.senderName}&spoken=${msg}"))
                             .build();
 
                         val response = client.send(request, HttpResponse.BodyHandlers.ofString());
