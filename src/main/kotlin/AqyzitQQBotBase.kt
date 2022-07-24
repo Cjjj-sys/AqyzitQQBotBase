@@ -1,5 +1,6 @@
 package aqyzit.qqbot.base
 
+import aqyzit.qqbot.base.aqyzit.qqbot.base.ChatData
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -78,18 +79,13 @@ object AqyzitQQBotBase : KotlinPlugin(
                     launch { val msg = event.message[2].toString().trim()
                         val client = HttpClient.newBuilder().build();
                         val request = HttpRequest.newBuilder()
-                            .uri(URI.create("http://api.qingyunke.com/api.php?key=free&appid=0&msg=${msg}"))
+                            .uri(URI.create("https://api.ownthink.com/bot?appid=xiaosi&userid=${event.senderName}&spoken=${msg}"))
                             .build();
 
                         val response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                        val resultChatData = Json.decodeFromString<ChatData>(response.body())
-                        event.group.sendMessage(At(sender.id) + resultChatData.content
-                            .replace("{br}", "\n")
-                            .replace("小美人菲菲", "小帅哥轩轩")
-                            .replace("菲菲", "轩轩")
-                            .replace("<BR>", " ")
-                            .replace("&nbsp", " ")
-                            .replace("纯情小女生","纯情小男生")
+                        val resultChatData = Json.decodeFromString<OwnThinkBotResponseRoot>(response.body())
+                        event.group.sendMessage(At(sender.id) + resultChatData.data.info.text
+                            .replace("小思", "轩轩")
                         )
                     }
                 }
