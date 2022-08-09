@@ -44,6 +44,8 @@ object AqyzitQQBotBase : KotlinPlugin(
         CommandManager.registerCommand(ListSendPosterRequestCommand)
         CommandManager.registerCommand(AcceptSendPosterRequestCommand)
         CommandManager.registerCommand(RefuseSendPosterRequestCommand)
+        CommandManager.registerCommand(ReplaceCommand)
+
 
         val botInvitedJoinGroupRequestEventListener: CompletableJob =
             GlobalEventChannel.subscribeAlways<BotInvitedJoinGroupRequestEvent> { event ->
@@ -82,15 +84,14 @@ object AqyzitQQBotBase : KotlinPlugin(
                             .build();
 
                         val response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                        val resultChatData = Json.decodeFromString<ChatData>(response.body())
-                        event.group.sendMessage(At(sender.id) + resultChatData.content
-                            .replace("{br}", "\n")
-                            .replace("小美人菲菲", "小帅哥轩轩")
-                            .replace("菲菲", "轩轩")
-                            .replace("<BR>", " ")
-                            .replace("&nbsp", " ")
-                            .replace("纯情小女生","纯情小男生")
-                        )
+			val resultChatData = Json.decodeFromString<ChatData>(response.body())
+                        
+			//屏蔽字处理 
+			var tmpContent=resultChatData.content;
+			val lines: List<String> = File("replace.txt").readLines();
+			lines.forEach { line -> tmpContent=tmpContent.replace( line.split(' ')[0],line.split(' ')[1]) }
+		         				 
+                        event.group.sendMessage(At(sender.id) + tmpContent)
                     }
                 }
             }
@@ -126,6 +127,7 @@ object AqyzitQQBotBase : KotlinPlugin(
                 MenuItem("列出所有定时发送海报的请求", ListSendPosterRequestCommand),
                 MenuItem("接受定时发送海报请求", AcceptSendPosterRequestCommand),
                 MenuItem("拒绝定时发送海报请求", RefuseSendPosterRequestCommand)
+                MenuItem("指定字符替换", ReplaceCommand)
             )
             sendMessage(menu.toMessageChain())
         }
@@ -296,3 +298,15 @@ object AqyzitQQBotBase : KotlinPlugin(
         }
     }
 }
+
+object ReplaceCommand :RawCommand(
+	    AqyzitQQBotBase, "replace","rep",//好丑的缩写，以及暂时不知道权限怎么做 
+	    usage = "!!需要权限!!/replace [旧词] [新词]", // 设置用法，将会在 /help 展示
+	    description = "将旧词替换为新词", // 设置描述，将会在 /help 展示
+	    prefixOptional = true, // 设置指令前缀是可选的，即使用 `test` 也能执行指令而不需要 `/test`
+	) {
+        override suspend fun CommandSender.onCommand(args: MessageChain) {
+    		val replaceFile = File("replace.txt")
+			replaceFile.appendText(args[0].toString()+' '+args[1].toString()+'\n')
+		}//没写文件错误处理！请手动创建文件
+	}
