@@ -84,13 +84,13 @@ object AqyzitQQBotBase : KotlinPlugin(
                             .build();
 
                         val response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                        //屏蔽字处理 
-				        var tmpContent=resultChatData.content;
-		                val fileName = "replace.txt";
-				        val lines: List<String> = File(fileName).readLines();
-				        lines.forEach { line -> tmpContent=tmpContent.replace( line.split(' ')[0],line.split(' ')[1]) }
+			val resultChatData = Json.decodeFromString<ChatData>(response.body())
+                        
+			//屏蔽字处理 
+			var tmpContent=resultChatData.content;
+			val lines: List<String> = File("replace.txt").readLines();
+			lines.forEach { line -> tmpContent=tmpContent.replace( line.split(' ')[0],line.split(' ')[1]) }
 		         				 
-                        val resultChatData = Json.decodeFromString<ChatData>(response.body())
                         event.group.sendMessage(At(sender.id) + tmpContent)
                     }
                 }
